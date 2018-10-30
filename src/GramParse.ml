@@ -1,5 +1,4 @@
 open Base
-
 open Exceptions
 open Sexplib.Type
 
@@ -47,16 +46,20 @@ let get_gram (unparsedgram : string) : grammar = match Sexplib.Sexp.of_string un
     | List(gram) -> transform_gram (List.map gram ~f:get_nt) gram
     | _ as sexp -> raise (Parse_Exn ("Unknown gram exp: " ^ (Sexp.to_string_hum sexp))) 
 
-let parse (nt : string) (rule_fun : string -> psexp list) (accept : Sexp.t -> Sexp.t option) (expr : Sexp.t) : Sexp.t option = 
+
+let parse (nt : string) (rule_fun : string -> psexp list) (expr : Sexp.t) : Sexp.t option = 
     let rec try_rules (rules : psexp list) (accept : Sexp.t -> Sexp.t option) (expr : Sexp.t) : Sexp.t option = match rules with
-        | f :: r -> let res = match_rule f accept expr in if (match res with | None -> true | _ -> false) then (try_rules r accept expr) else res
+        | f :: r -> let res = match_rule f accept expr in 
+                if (match res with | Some (List ([])) -> true | _ -> false) then res else (try_rules r accept expr)
         | [] -> None and
     match_rule (rule : psexp) (accept : Sexp.t -> Sexp.t option) (expr : Sexp.t) : Sexp.t option = 
         match (rule, expr) with 
+        | (ZeroOrMore pexpr, List([])) -> accept expr 
         | (ZeroOrMore pexpr, _) -> 
             let res = accept expr in (match res with 
                 | Some (List []) -> Some (List [])
                 | _ -> match_rule (OneOrMore pexpr) accept expr)
+        | (OneOrMore pexpr, List([])) -> None
         | (OneOrMore pexpr, _) -> match_rule pexpr (match_rule (ZeroOrMore pexpr) accept) expr
         | (NT strNT, List(f :: r)) -> 
             let res = try_rules (rule_fun strNT) (accept_empty) f in (match res with
@@ -68,10 +71,21 @@ let parse (nt : string) (rule_fun : string -> psexp list) (accept : Sexp.t -> Se
         | (PList(f :: r), _) -> match_rule f (match_rule (PList r) accept) expr
         | (PList([]), _) -> accept expr
         | (_,_) -> None
-    in try_rules (rule_fun nt) accept_empty expr
+    in try_rules (rule_fun nt) (function | List a -> Some (List a) | _ -> None) expr
 
-let parser_gen (gram : grammar) (expression : Sexp.t) = 
-  match (parse start_nt (get_rules gram) (accept_empty) expression) with 
+
+let parse_gram (rule_fun : string -> psexp list) (expression : Sexp.t) (start : string) : bool = 
+  match (parse start rule_fun expression) with 
     | Some(List []) -> true 
     | _ -> false
+
+let parser_gen (gramSexp : Sexp.t list) : (Sexp.t -> string list)*(Sexp.t -> bool) = 
+    let nts = List.map ~f:(get_nt) gramSexp in
+    let gram = transform_gram nts gramSexp in
+    let rule_fun = get_rules gram in
+    ((fun (expression : Sexp.t) -> List.filter nts ~f:(parse_gram rule_fun expression)),
+     (fun (expression : Sexp.t) -> parse_gram rule_fun expression start_nt))
+    
+
+
 
