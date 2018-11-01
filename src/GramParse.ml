@@ -72,7 +72,7 @@ match_rule (rule_fun : string -> psexp list) (rule : psexp) (continue : (unit ->
         | (_,_) -> reject ()
 
 let parse (nt : string) (rule_fun : string -> psexp list) (expr : Sexp.t) : Sexp.t option = 
-    try_rules rule_fun (rule_fun nt) (fun rej -> function | List a -> Some (List a) | _ -> rej ()) (fun () -> None) expr
+    try_rules rule_fun (rule_fun nt) (fun rej -> function | List [] -> Some (List []) | _ -> rej ()) (fun () -> None) expr
 
 let parse_gram (rule_fun : string -> psexp list) (expression : Sexp.t) (start : string) : bool = 
   match (parse start rule_fun expression) with 
@@ -83,6 +83,6 @@ let parser_gen (gramSexp : Sexp.t list) : (Sexp.t -> string list)*(Sexp.t -> boo
     let nts = List.map ~f:(get_nt) gramSexp in
     let gram = transform_gram nts gramSexp in
     let rule_fun = get_rules gram in
-    ((fun (expression : Sexp.t) -> List.filter nts ~f:(parse_gram rule_fun expression)),
+    ((fun (expression : Sexp.t) -> (List.filter nts ~f:(parse_gram rule_fun expression)),
      (fun (expression : Sexp.t) -> parse_gram rule_fun expression start_nt))
     

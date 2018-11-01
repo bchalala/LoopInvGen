@@ -108,7 +108,7 @@ let parse_sexps (sexps : Sexp.t list) : t =
                 -> (* TODO *) Log.warn (lazy ("LoopInvGen currently does not allow custom grammars. The provided grammar will be ignored, and full SMTLIB2 will be used instead."))
                  ; invf_name := _invf_name ; invf_vars := List.map ~f:parse_variable_declaration _invf_vars ;
                  let (_inv_parser, _subexp_parser) = parser_gen gram in 
-                 (inv_parser := _inv_parser ; subexp_parser := _subexp_parser)
+                 (inv_parser := _inv_parser ; subexp_parser := (fun expr -> (List.length _subexp_parser expr) > 0))
               | List(Atom("declare-var") :: sexps)
                 -> let new_var = parse_variable_declaration (List sexps)
                     in if List.mem !variables new_var ~equal:(fun x y -> String.equal (fst x) (fst y))
