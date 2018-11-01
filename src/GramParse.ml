@@ -83,6 +83,6 @@ let parser_gen (gramSexp : Sexp.t list) : (Sexp.t -> string list)*(Sexp.t -> boo
     let nts = List.map ~f:(get_nt) gramSexp in
     let gram = transform_gram nts gramSexp in
     let rule_fun = get_rules gram in
-    ((fun (expression : Sexp.t) -> (List.filter nts ~f:(parse_gram rule_fun expression)),
+    ((fun (expression : Sexp.t) -> List.filter nts ~f:(parse_gram rule_fun expression)),
      (fun (expression : Sexp.t) -> parse_gram rule_fun expression start_nt))
     
