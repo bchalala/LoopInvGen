@@ -30,7 +30,7 @@ type t = {
   synth_variables : var list ;
 
   inv_parser : (Sexp.t -> bool) ;
-  subexp_parser : (Sexp.t -> string list) ; 
+  subexp_parser : (Sexp.t -> bool) ; 
 }
 
 let rec extract_consts (exp : Sexp.t) : (Value.t list) =
