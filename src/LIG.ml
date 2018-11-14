@@ -87,11 +87,10 @@ let rec learnInvariant_internal ?(conf = default_config) (restarts_left : int)
                                  (simulate_from sygus z3 head))))
         ~conf (restarts_left - 1) sygus (seed_string ^ "#") z3
     end
-  in let open Sexp 
   in match satisfyTrans ~conf ~sygus ~states ~z3 (sygus.post_func.expr) with
      | inv, None
-       -> if ((inv <> "false") and (sygus.inv_parser (Sexp.parse inv))) then ZProc.simplify z3 inv
-          else restart_with_new_states (random_value ~seed:(`Deterministic seed_string)
+       -> if ((inv <> "false") and (sygus.inv_parser (Sexp.of_string inv))) then ZProc.simplify z3 inv
+       else restart_with_new_states (random_value ~seed:(`Deterministic seed_string)
                                                      (gen_pre_state ~use_trans:true sygus z3))
      | _, (Some ce_model)
        -> restart_with_new_states (random_value ~seed:(`Deterministic seed_string)
