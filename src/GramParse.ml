@@ -16,7 +16,7 @@ let start_nt = "Start"
 let rec gen_psgram (nts : string list) (gram : Sexp.t) : psexp = match gram with
     | Atom(x) -> 
         let last_letter = String.get x (String.length x - 1) in
-        let str = if (Char.equal last_letter '+' || Char.equal last_letter '*') then String.sub x ~len:0 ~pos:(String.length x - 1) else x in
+        let str = if (Char.equal last_letter '+' || Char.equal last_letter '*') then String.sub x ~pos:0 ~len:(String.length x - 1) else x in
                   if not (List.exists ~f:(String.equal str) nts) then T x else (match last_letter with 
                     | '+' -> OneOrMore (NT str)
                     | '*' -> ZeroOrMore (NT str)
