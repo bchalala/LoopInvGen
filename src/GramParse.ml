@@ -16,14 +16,14 @@ let start_nt = "Start"
 let rec gen_psgram (nts : string list) (gram : Sexp.t) : psexp = match gram with
     | Atom(x) -> 
         let last_letter = String.get x (String.length x - 1) in
-        let str = if Char.equal last_letter '+' or Char.equal last_letter '*' then String.sub x 0 (String.length x - 1) else x in
+        let str = if (Char.equal last_letter '+' || Char.equal last_letter '*') then String.sub x ~len:0 ~pos:(String.length x - 1) else x in
                   if not (List.exists ~f:(String.equal str) nts) then T x else (match last_letter with 
                     | '+' -> OneOrMore (NT str)
                     | '*' -> ZeroOrMore (NT str)
                     | _ -> NT x)
     | List (f :: r) -> 
         let fP = gen_psgram nts f in
-        let fR = gen_psgram nts (List r) in (match fR with | PList fRL -> PList (fP :: fRL))
+        let fR = gen_psgram nts (List r) in (match fR with | PList fRL -> PList (fP :: fRL) | _ -> PList([]))
     | List ([]) -> PList []
 
 let rec get_rules (gram : grammar) (nt : string) : psexp list = match gram with
@@ -37,6 +37,7 @@ let get_nt (ntruleset : Sexp.t) : string = match ntruleset with
 let rec transform_gram (nts : string list) (gram : Sexp.t list) : grammar = match gram with
     | List([Atom(nt_cand); _; List(l)]) :: rest -> (nt_cand, List.map ~f:(gen_psgram nts) l) :: (transform_gram nts rest)
     | [] -> []
+    | _ -> raise (Parse_Exn ("Grammar could not be transformed."))
 
 let get_gram (unparsedgram : string) : grammar = match Sexplib.Sexp.of_string unparsedgram with
     | List(gram) -> transform_gram (List.map gram ~f:get_nt) gram
