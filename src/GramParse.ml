@@ -65,7 +65,7 @@ match_rule (rule_fun : string -> psexp list) (rule : psexp) (continue : (unit ->
                 expr
         | (NT strNT, List(f :: r)) ->  
                 try_rules rule_fun (rule_fun strNT) (fun rj -> function | List [] -> (continue rj (List r))  | _ -> rj ()) reject f
-        | (NT strNT, Atom(e)) -> try_rules rule_fun (rule_fun strNT) continue reject expr
+        | (NT strNT, Atom(_)) -> try_rules rule_fun (rule_fun strNT) continue reject expr
         | (T strT, List ((Atom strE) :: r)) -> if String.equal strE strT then continue reject (List r) else reject ()
         | (T strT, Atom strE) ->  if String.equal strE strT then continue reject (List []) else reject ()
         | (PList(f :: r), _) -> match_rule rule_fun f (match_rule rule_fun (PList r) continue) reject expr
