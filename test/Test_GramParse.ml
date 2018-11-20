@@ -28,7 +28,7 @@ let get_example_parser () =
                   (<= Start Start)
                   (= Start Start)
                   (>= Start Start)))
-        )" in parser_gen (match g with | List(a) -> a | _ -> List([]))
+        )" in parser_gen (match g with | List(a) -> a | _ -> [])
 
 let example_sygus_grammar_empty_list () = 
     let p1, p2 = get_example_parser () in
@@ -51,7 +51,7 @@ let get_parser_with_ebnf () =
                 (ite StartBool Start Start)))
             (StartBool Bool ((and StartBool StartBool* StartBool)
                   (>= Start Start)))
-        )" in parser_gen (match g with | List(a) -> a | _ -> List([]))
+        )" in parser_gen (match g with | List(a) -> a | _ -> [])
 
 let ebnf_grammar_parse_exp_repeat_0 () =
     let p1, p2 = get_parser_with_ebnf () in
