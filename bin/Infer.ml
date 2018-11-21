@@ -1,5 +1,6 @@
 open Core
 open LoopInvGen
+open GramParse
 
 let main zpath statefile logfile max_conflicts max_strengthening_attempts
          max_restarts max_steps_on_restart filename () =
