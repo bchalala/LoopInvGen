@@ -45,7 +45,7 @@ let conflictingTests (job : Job.t) : 'a conflict list =
                                    ; neg = map ~f:fst ntests
                                    ; fvec = pfv }))
 
-let synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t)
+let synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t) ~(parser : Sexp.t -> bool)
                  (conflict_group : Value.t list conflict) : Value.t list Job.feature Job.with_desc =
   let open Synthesizer in
   let result = solve consts {
@@ -59,9 +59,9 @@ let synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t)
   } in 
   let res_str = (if result.constraints = [] then result.string
          else "(and " ^ result.string ^ (String.concat ~sep:" " result.constraints) ^ ")") in
-  if feature_parser (Parsexp.Single.parse_string_exn res_str) 
+  if parser (Parsexp.Single.parse_string_exn res_str) 
   then ((fun values -> try Value.equal (result.func values) (Value.Bool true) with _ -> false), res_str)
-  else synthFeature consts ~job ~logic conflict_group
+  else synthFeature ~consts ~job ~logic ~parser conflict_group
 
 let resolveAConflict ?(conf = default_config) ?(consts = []) ~(job : Job.t)
                      (conflict_group' : Value.t list conflict)
@@ -84,7 +84,7 @@ let resolveAConflict ?(conf = default_config) ?(consts = []) ~(job : Job.t)
           ^ "NEG (" ^ (Int.to_string (List.length conflict_group.neg)) ^ "):" ^ (Log.indented_sep 4)
                       ^ (List.to_string_map conflict_group.neg ~sep:(Log.indented_sep 4)
                            ~f:(fun vl -> "(" ^ (List.to_string_map vl ~f:Value.to_string ~sep:" , ") ^ ")"))))
-   ; let new_feature = synthFeature conflict_group ~logic:conf.synth_logic ~consts ~job
+   ; let new_feature = synthFeature conflict_group ~logic:conf.synth_logic ~consts ~job ~parser:conf.feature_parser
      in Log.debug (lazy ("Synthesized feature:" ^ (Log.indented_sep 4) ^ (snd new_feature)))
       ; new_feature
 
