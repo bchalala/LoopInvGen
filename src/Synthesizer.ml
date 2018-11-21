@@ -8,6 +8,7 @@ type task = {
   arg_names : string list ;
   inputs : Value.t array list ;
   outputs : Value.t array
+  parser : Sexp.t -> bool ;
 }
 
 type result = {
@@ -82,7 +83,10 @@ let solve_impl consts task =
   let check (candidate : Expr.synthesized) =
     (* Log.debug (lazy ("  > Now checking (@ size " ^ (Int.to_string (Expr.size candidate.expr)) ^ "): "
                     ^ (Expr.to_string (Array.of_list task.arg_names) candidate.expr))); *)
-    if Array.equal ~equal:Value.equal task.outputs candidate.outputs
+    if Array.equal ~equal:Value.equal task.outputs candidate.outputs &&
+       (let arg_names_array = Array.of_list task.arg_names
+        in let solution_string = Expr.to_string arg_names_array candidate.expr
+        in Parsexp.Single.parse_string_exn solution_string)
     then raise (Success candidate.expr)
   in
 

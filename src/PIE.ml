@@ -55,13 +55,10 @@ let rec synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t) ~(parser :
       List.mapi job.farg_names
                 ~f:(fun i _ -> Array.of_list List.(map all_inputs ~f:(fun l -> nth_exn l i))));
     outputs = Array.of_list ((List.map conflict_group.pos ~f:(fun _ -> Value.Bool true))
-                            @ (List.map conflict_group.neg ~f:(fun _ -> Value.Bool false)))
-  } in 
-  let res_str = (if result.constraints = [] then result.string
-         else "(and " ^ result.string ^ (String.concat ~sep:" " result.constraints) ^ ")") in
-  if parser (Parsexp.Single.parse_string_exn res_str) 
-  then ((fun values -> try Value.equal (result.func values) (Value.Bool true) with _ -> false), res_str)
-  else synthFeature ~consts ~job ~logic ~parser conflict_group
+                            @ (List.map conflict_group.neg ~f:(fun _ -> Value.Bool false))) ;
+    parser = parser ;
+  } in ((fun values -> try Value.equal (result.func values) (Value.Bool true) with _ -> false), (if result.constraints = [] then result.string
+         else "(and " ^ result.string ^ (String.concat ~sep:" " result.constraints) ^ ")"))
 
 let resolveAConflict ?(conf = default_config) ?(consts = []) ~(job : Job.t)
                      (conflict_group' : Value.t list conflict)
