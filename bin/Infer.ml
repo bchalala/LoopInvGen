@@ -29,7 +29,7 @@ let main zpath statefile logfile max_conflicts max_strengthening_attempts
             ; max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
                                       else (logic.conflict_group_size_multiplier
                                             * PIE.base_max_conflict_group_size))
-            ; feature_parser
+            ; (fun s -> (List.length (feature_parser s)) > 0)
          }
        ; max_tries = max_strengthening_attempts
        }
