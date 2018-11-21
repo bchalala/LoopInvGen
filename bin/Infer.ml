@@ -16,7 +16,9 @@ let main zpath statefile logfile max_conflicts max_strengthening_attempts
    ; let sygus = SyGuS.read_from filename
      in let feature_parser, inv_parser = (
         match sygus.grammar with 
-        | Some gram -> parser_gen gram
+        | Some gram -> 
+            let p1, p2 = parser_gen gram in
+            (fun s -> (List.length (p1 s)) > 0), p2
         | None -> (fun _ -> true), (fun _ -> true))
      in let logic = Logic.of_string sygus.logic
      in let conf = {
@@ -29,7 +31,7 @@ let main zpath statefile logfile max_conflicts max_strengthening_attempts
             ; max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
                                       else (logic.conflict_group_size_multiplier
                                             * PIE.base_max_conflict_group_size))
-            ; (fun s -> (List.length (feature_parser s)) > 0)
+            ; feature_parser
          }
        ; max_tries = max_strengthening_attempts
        }
