@@ -93,7 +93,7 @@ let parse_sexps (sexps : Sexp.t list) : t =
   let transf_name : string ref = ref "" in
   let variables : var list ref = ref [] in
   let invf_vars : var list ref = ref [] in
-  let grammar : Sexp.t list option = ref None
+  let grammar : Sexp.t list option ref = ref None
    in List.iter sexps
         ~f:(function
               | List([Atom("check-synth")]) -> ()
