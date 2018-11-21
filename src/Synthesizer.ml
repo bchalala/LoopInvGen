@@ -7,7 +7,7 @@ type task = {
   logic : Logic.t ;
   arg_names : string list ;
   inputs : Value.t array list ;
-  outputs : Value.t array
+  outputs : Value.t array ;
   parser : Sexp.t -> bool ;
 }
 
@@ -86,7 +86,7 @@ let solve_impl consts task =
     if Array.equal ~equal:Value.equal task.outputs candidate.outputs &&
        (let arg_names_array = Array.of_list task.arg_names
         in let solution_string = Expr.to_string arg_names_array candidate.expr
-        in Parsexp.Single.parse_string_exn solution_string)
+        in task.parser (Parsexp.Single.parse_string_exn solution_string))
     then raise (Success candidate.expr)
   in
 
