@@ -45,7 +45,7 @@ let conflictingTests (job : Job.t) : 'a conflict list =
                                    ; neg = map ~f:fst ntests
                                    ; fvec = pfv }))
 
-let synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t) ~(parser : Sexp.t -> bool)
+let rec synthFeature ?(consts = []) ~(job : Job.t) ~(logic : Logic.t) ~(parser : Sexp.t -> bool)
                  (conflict_group : Value.t list conflict) : Value.t list Job.feature Job.with_desc =
   let open Synthesizer in
   let result = solve consts {
