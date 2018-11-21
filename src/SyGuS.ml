@@ -29,8 +29,7 @@ type t = {
   variables : var list ;
   synth_variables : var list ;
 
-  inv_parser : (Sexp.t -> bool) ;
-  subexp_parser : (Sexp.t -> bool) ; 
+  grammar : Sexp.t list option ;
 }
 
 let rec extract_consts (exp : Sexp.t) : (Value.t list) =
@@ -94,8 +93,7 @@ let parse_sexps (sexps : Sexp.t list) : t =
   let transf_name : string ref = ref "" in
   let variables : var list ref = ref [] in
   let invf_vars : var list ref = ref [] in
-  let inv_parser : (Sexp.t -> bool) ref = ref (fun _ -> true) in
-  let subexp_parser : (Sexp.t -> bool) ref = ref (fun _ -> true)
+  let grammar : Sexp.t list option = ref None
    in List.iter sexps
         ~f:(function
               | List([Atom("check-synth")]) -> ()
@@ -104,11 +102,9 @@ let parse_sexps (sexps : Sexp.t list) : t =
                    else raise (Parse_Exn ("Logic already set to: " ^ !logic))
               | List([Atom("synth-inv") ; Atom(_invf_name) ; List(_invf_vars)])
                 -> invf_name := _invf_name ; invf_vars := List.map ~f:parse_variable_declaration _invf_vars
-              | List([Atom("synth-inv") ; Atom(_invf_name) ; List(_invf_vars) ; Atom(_) ; List(gram)])
-                -> (* TODO *) Log.warn (lazy ("LoopInvGen currently does not allow custom grammars. The provided grammar will be ignored, and full SMTLIB2 will be used instead."))
-                 ; invf_name := _invf_name ; invf_vars := List.map ~f:parse_variable_declaration _invf_vars ;
-                 let (_subexp_parser, _inv_parser) = parser_gen gram in 
-                 (inv_parser := _inv_parser ; subexp_parser := (fun expr -> (List.length (_subexp_parser expr) > 0)))
+              | List([Atom("synth-inv") ; Atom(_invf_name) ; List(_invf_vars) ; Atom(_) ; List(_grammar)])
+                -> (* TODO *) Log.warn (lazy ("LoopInvGen currently does not allow custom grammars. The provided grammar will be ignored, and full SMTLIB2 will be used instead.")) 
+                 ; (grammar := _grammar )
               | List(Atom("declare-var") :: sexps)
                 -> let new_var = parse_variable_declaration (List sexps)
                     in if List.mem !variables new_var ~equal:(fun x y -> String.equal (fst x) (fst y))
@@ -149,8 +145,7 @@ let parse_sexps (sexps : Sexp.t list) : t =
         ; expr = ""
         ; return = Type.BOOL
         }
-      ; inv_parser = !inv_parser
-      ; subexp_parser = !subexp_parser
+      ; grammar = !grammar
       }
 
 let parse (chan : Stdio.In_channel.t) : t =

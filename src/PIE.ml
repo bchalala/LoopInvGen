@@ -16,6 +16,7 @@ type config = {
   synth_logic : Logic.t ;
   disable_synth : bool ;
   max_conflict_group_size : int ;
+  feature_parser : Sexp.t -> bool ;
 }
 
 let base_max_conflict_group_size = 32
@@ -26,6 +27,7 @@ let default_config : config = {
   synth_logic = Logic.of_string "LIA" ;
   disable_synth = false ;
   max_conflict_group_size = base_max_conflict_group_size ;
+  feature_parser = (fun _ -> true) ;
 }
 
 let conflictingTests (job : Job.t) : 'a conflict list =

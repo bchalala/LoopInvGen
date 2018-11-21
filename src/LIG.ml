@@ -11,6 +11,8 @@ type 'a config = {
   max_restarts : int ;
   max_steps_on_restart : int ;
   model_completion_mode : [ `RandomGeneration | `UsingZ3 ] ;
+
+  inv_parser : Sexp.t -> bool ;
 }
 
 let default_config = {
@@ -22,6 +24,7 @@ let default_config = {
   max_restarts = 64 ;
   max_steps_on_restart = 256 ;
   model_completion_mode = `RandomGeneration ;
+  inv_parser = (fun _ -> true) ;
 }
 
 let satisfyTrans ?(conf = default_config) ~(sygus : SyGuS.t) ~(z3 : ZProc.t)
@@ -89,8 +92,9 @@ let rec learnInvariant_internal ?(conf = default_config) (restarts_left : int)
     end
   in match satisfyTrans ~conf ~sygus ~states ~z3 (sygus.post_func.expr) with
      | inv, None
-       -> if ((inv <> "false") && (sygus.inv_parser (Sexp.of_string inv))) then ZProc.simplify z3 inv
-       else restart_with_new_states (random_value ~seed:(`Deterministic seed_string)
+       -> if ((inv <> "false") && (conf.inv_parser (Parsexp.Single.parse_string_exn inv))) 
+          then ZProc.simplify z3 inv
+          else restart_with_new_states (random_value ~seed:(`Deterministic seed_string)
                                                      (gen_pre_state ~use_trans:true sygus z3))
      | _, (Some ce_model)
        -> restart_with_new_states (random_value ~seed:(`Deterministic seed_string)

@@ -13,22 +13,28 @@ let main zpath statefile logfile max_conflicts max_strengthening_attempts
    ; Log.debug (lazy ("Loaded " ^ (Int.to_string (List.length states)) ^
                       " program states."))
    ; let sygus = SyGuS.read_from filename
+     in let feature_parser, inv_parser = (
+        match sygus.grammar with 
+        | Some gram -> parser_gen gram
+        | None -> (fun _ -> true), (fun _ -> true))
      in let logic = Logic.of_string sygus.logic
      in let conf = {
        LIG.default_config with
        for_VPIE = {
          LIG.default_config.for_VPIE with
          for_PIE = {
-           LIG.default_config.for_VPIE.for_PIE with
-           synth_logic = logic;
-           max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
+            LIG.default_config.for_VPIE.for_PIE with
+              synth_logic = logic
+            ; max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
                                       else (logic.conflict_group_size_multiplier
-                                            * PIE.base_max_conflict_group_size)) ;
+                                            * PIE.base_max_conflict_group_size))
+            ; feature_parser
          }
        ; max_tries = max_strengthening_attempts
        }
      ; max_restarts
      ; max_steps_on_restart
+     ; inv_parser
      }
      in let inv = LIG.learnInvariant ~conf ~zpath ~states sygus
      in Stdio.Out_channel.output_string Stdio.Out_channel.stdout
