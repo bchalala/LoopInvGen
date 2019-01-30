@@ -1,7 +1,5 @@
 #!/bin/bash
 
-if (( ${BASH_VERSION%%.*} < 4 )) ; then echo "ERROR: [bash] version 4.0+ required!" ; exit -1 ; fi
-
 SELF_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 trap 'kill -TERM -$INFER_PID > /dev/null 2> /dev/null' INT
@@ -150,8 +148,7 @@ for TESTCASE in `find "$BENCHMARKS_DIR" -name *$SYGUS_EXT` ; do
     echo > $TESTCASE_INV ; echo > $TESTCASE_RES
 
     show_status "(inferring)"
-    (\time --format "\nreal(s)\t%e\nuser(s)\t%U\n sys(s)\t%S\n   cpu%%\t%P\nrss(kb)\t%M\n" \
-          timeout $TIMEOUT $TOOL $TESTCASE $TOOL_ARGS) > $TESTCASE_INV 2> $TESTCASE_RES &
+    timeout $TIMEOUT $TOOL $TESTCASE $TOOL_ARGS > $TESTCASE_INV 2> $TESTCASE_RES &
     INFER_PID=$!
     wait $INFER_PID
     INFER_RESULT_CODE=$?
