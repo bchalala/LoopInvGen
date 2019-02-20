@@ -145,7 +145,7 @@ let subtract ~(from : Expr.component list) (comps : Expr.component list) =
   List.filter from ~f:(fun c -> not (List.mem comps c
                                        ~equal:(fun c1 c2 -> String.equal c1.name c2.name)))
 
-let solve_impl config task stats=
+let solve_impl config task stats =
   let typed_components t_type = Array.append
     (Array.create ~len:1 [])
     (Array.mapi (Array.init (Int.min config.max_level (Array.length config.logic.components_per_level))
@@ -214,6 +214,14 @@ let solve_impl config task stats=
                        ^ (Expr.to_string (Array.of_list task.arg_names) candidate.expr))) ; *)
     if Array.equal ~equal:Value.equal task.outputs candidate.outputs
     then raise (Success candidate.expr)
+    (* need to check here if either all pos and at least one neg, or all neg and at least one pos *)
+    let zipped = Array.zip_exn task.outputs candidate.outputs in 
+    let posVals = Array.filter_map zipped ~f:(fun x,y -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
+    let negVals = Array.filter_map zipped ~f:(fun x,y -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
+    let (allPos,atleastOnePos) = Array.fold_right posVals ~f:(fun x,y allPos,onePos -> if Value.equal x y then allPos,true else false,onePos) ~init:true,false in
+    let (allNeg,atleastOneNeg) = Array.fold_right negVals ~f:(fun x,y allNeg,oneNeg -> if Value.equal x y then allNeg,true else false,oneNeg) ~init:true,false in
+    if (allPos && allNeg) || (allPos && atleastOneNeg) || (allNeg && atleastOnePos) then raise (Success candidate.expr)
+
   in
 
   let task_codomain = Value.typeof task.outputs.(1)
