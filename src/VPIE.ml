@@ -77,7 +77,7 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                                              ~f:(fun v n -> n ^ " = " ^
                                                             (Value.to_string v)))
                                         ^ "}"))
-                       ; stats.vpi_ce <- stats.vpi_ce + 1 
+                       ; stats.vpi_ce <- stats.vpi_ce + 1 ;
             let genCounterExamples (curCounters = "true") (job : Job.t) (n : int): Job.t = 
                 (if n <= 0 then job else 
                 match ZProc.gen_counter_example ~eval_term z3 pre_desc post_desc curCounters with
@@ -104,7 +104,7 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                                                 test job.farg_names ~sep:", "
                                                 ~f:(fun v n -> "(= " ^ n ^ " " ^ (Value.to_string v) ^ ")")) in 
                         let j = (Job.add_neg_test ~job test) in 
-                        (genCounterExamples ("(and " ^ curCounters ^ " " ^ counter_string ^ ")") j (n - 1))
+                        (genCounterExamples ("(and " ^ curCounters ^ " " ^ counter_string ^ ")") j (n - 1)))
               in helper (tries_left - 1) (genCounterExamples ~eval_term ~z3 ~pre_desc ~post_desc ~job 5)
                end
     end
