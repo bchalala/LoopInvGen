@@ -11,6 +11,7 @@ type config = {
   cost_function : int -> int -> float ;
   logic : Logic.t ;
   max_level : int ;
+  min_examples : int ;
 }
 
 let default_config : config = {
@@ -19,6 +20,7 @@ let default_config : config = {
   cost_function = (fun g_cost e_cost -> (Int.to_float e_cost) *. (Float.log (Int.to_float g_cost))) ;
   logic = Logic.of_string "LIA" ;
   max_level = 4 ;
+  min_examples = 3 ;
 }
 
 type task = {
@@ -212,15 +214,17 @@ let solve_impl config task stats =
   let check (candidate : Expr.synthesized) =
     (* Log.debug (lazy ("  > Now checking (@ cost " ^ (Int.to_string (f_cost candidate.expr)) ^ "): "
                        ^ (Expr.to_string (Array.of_list task.arg_names) candidate.expr))) ; *)
-    if Array.equal ~equal:Value.equal task.outputs candidate.outputs
-    then raise (Success candidate.expr)
+    (* if Array.equal ~equal:Value.equal task.outputs candidate.outputs
+    then raise (Success candidate.expr) *)
     (* need to check here if either all pos and at least one neg, or all neg and at least one pos *)
     let zipped = Array.zip_exn task.outputs candidate.outputs in 
-    let posVals = Array.filter_map zipped ~f:(fun x,y -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
-    let negVals = Array.filter_map zipped ~f:(fun x,y -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
-    let (allPos,atleastOnePos) = Array.fold_right posVals ~f:(fun x,y allPos,onePos -> if Value.equal x y then allPos,true else false,onePos) ~init:true,false in
-    let (allNeg,atleastOneNeg) = Array.fold_right negVals ~f:(fun x,y allNeg,oneNeg -> if Value.equal x y then allNeg,true else false,oneNeg) ~init:true,false in
-    if (allPos && allNeg) || (allPos && atleastOneNeg) || (allNeg && atleastOnePos) then raise (Success candidate.expr)
+    let posVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
+    let negVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
+    let posCount = Array.fold_right posVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
+    let negCount = Array.fold_right negVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
+    let allPos = ((List.length posVals) = posCount) in
+    let allNeg = ((List.length negVals) = negCount) in 
+    if (allPos && allNeg) || (allPos && (negCount > config.min_examples)) || (allNeg && (posCount > config.min_examples)) then raise (Success candidate.expr)
 
   in
 
