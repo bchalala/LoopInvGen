@@ -11,7 +11,7 @@ let output_stats stats = function
 
 let main zpath statefile logfile statsfile max_conflicts
          max_strengthening_attempts max_restarts max_steps_on_restart
-         filename () =
+         min_separating_examples filename () =
   Log.enable ~msg:"INFER" logfile ;
   let state_chan = Utils.get_in_channel statefile in
   let states = List.(permute
@@ -31,7 +31,8 @@ let main zpath statefile logfile statsfile max_conflicts
            LIG.default_config._VPIE._PIE with
            _Synthesizer = {
              LIG.default_config._VPIE._PIE._Synthesizer with
-             logic = logic
+             logic = logic ;
+             min_examples = min_separating_examples ;
            }
            ; max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
                                       else (logic.conflict_group_size_multiplier
@@ -69,7 +70,8 @@ let spec =
          ~doc:"NUMBER number of times the inference engine may restart"
       +> flag "-max-steps-on-restart" (optional_with_default (LIG.default_config.max_steps_on_restart) int)
          ~doc:"NUMBER number of states to collect after each restart"
-
+      +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) int)
+         ~doc:"NUMBER number of examples at a minimum necessary to separate conflict set"
       +> anon ("filename" %: file)
     )
 

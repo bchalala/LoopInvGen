@@ -20,7 +20,7 @@ type stats = {
 
 let default_config = {
   _VPIE = {
-    VPIE.default_config with simplify = false ;
+    VPIE.default_config with simplify = false ; 
   } ;
 
   base_random_seed = "LoopInvGen" ;
