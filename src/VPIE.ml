@@ -107,7 +107,7 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                                                 ~f:(fun v n -> "(= " ^ n ^ " " ^ (Value.to_string v) ^ ")")) ^ ")" in
                         let j = (Job.add_neg_test ~job test) in
                         (genCounterExamples ~curCounters:("(and " ^ curCounters ^ " (not " ^ counter_string ^ "))") j (n - 1)))
-              in helper (tries_left - 1) (genCounterExamples job 5)
+              in helper (tries_left - 1) (genCounterExamples job conf.num_counter_examples)
                end
     end
   in try helper conf.max_tries job

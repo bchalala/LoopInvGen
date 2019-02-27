@@ -73,7 +73,7 @@ let spec =
          ~doc:"NUMBER number of states to collect after each restart"
       +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) int)
          ~doc:"NUMBER number of examples at a minimum necessary to separate conflict set"
-      +> flag "-num-gen-counter_examples" (optional_with_default (LIG.default_config._VPIE.num_counter_examples) int)
+      +> flag "-num-gen-counter-examples" (optional_with_default (LIG.default_config._VPIE.num_counter_examples) int)
          ~doc:"NUMBER number of counterexamples to be generated when precondition is not sufficient"
       +> anon ("filename" %: file)
     )
