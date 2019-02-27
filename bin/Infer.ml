@@ -11,7 +11,7 @@ let output_stats stats = function
 
 let main zpath statefile logfile statsfile max_conflicts
          max_strengthening_attempts max_restarts max_steps_on_restart
-         min_separating_examples filename () =
+         min_separating_examples num_counter_examples filename () =
   Log.enable ~msg:"INFER" logfile ;
   let state_chan = Utils.get_in_channel statefile in
   let states = List.(permute
@@ -39,6 +39,7 @@ let main zpath statefile logfile statsfile max_conflicts
                                             * PIE.base_max_conflict_group_size)) ;
          }
        ; max_tries = max_strengthening_attempts
+       ; num_counter_examples = num_counter_examples
        }
      ; max_restarts
      ; max_steps_on_restart
@@ -72,6 +73,8 @@ let spec =
          ~doc:"NUMBER number of states to collect after each restart"
       +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) int)
          ~doc:"NUMBER number of examples at a minimum necessary to separate conflict set"
+      +> flag "-num-gen-counter_examples" (optional_with_default (LIG.default_config._VPIE.num_counter_examples) int)
+         ~doc:"NUMBER number of counterexamples to be generated when precondition is not sufficient"
       +> anon ("filename" %: file)
     )
 

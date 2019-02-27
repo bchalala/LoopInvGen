@@ -9,6 +9,7 @@ type 'a config = {
   describe : (('a Job.feature Job.with_desc) CNF.t option) -> Job.desc ;
   max_tries : int ;
   simplify : bool ;
+  num_counter_examples : int ;
 }
 
 type stats = {
@@ -24,6 +25,7 @@ let default_config = {
   describe = PIE.cnf_opt_to_desc ;
   max_tries = 512 ;
   simplify = true ;
+  num_counter_examples = 1 ;
 }
 
 
