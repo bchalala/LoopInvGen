@@ -1,6 +1,6 @@
 LoopInvGen
-  [![Build Status](https://img.shields.io/travis/SaswatPadhi/LoopInvGen/master.svg?label=Travis+Build)][travis]
-  [![Docker Build](https://img.shields.io/docker/build/padhi/loopinvgen.svg?label=Docker+Image)][docker-hub]
+[<img align='right' src='https://img.shields.io/travis/SaswatPadhi/LoopInvGen/master.svg?logo=travis&style=popout&label=Travis+Build'></img>][travis]
+[<img align='right' src='https://img.shields.io/docker/build/padhi/loopinvgen.svg?logo=docker&style=popout&label=Docker+Image'></img>][docker-hub]
 ==========
 
 A data-driven tool that generates provably-sufficient loop invariants for program verification.
@@ -8,7 +8,8 @@ A data-driven tool that generates provably-sufficient loop invariants for progra
 <p align="center">
   <img src="docs/architecture.png" width="400"/>
   <br><br>
-  <small>[<code>LoopInvGen</code> is the successor of our old project, <a href="https://github.com/SaswatPadhi/PIE"><s>PIE</s></a> (now deactivated), on precondition inference.]</small>
+  <small>[<code>LoopInvGen</code> extends our old (now deactivated) project,
+  PIE -- the Precondition Inference Engine.]</small>
 </p>
 
 
@@ -47,22 +48,32 @@ A data-driven tool that generates provably-sufficient loop invariants for progra
 
 ### Using `docker` (recommended)
 
-_**Note:** The docker image consumes ~4GB of disk space._
+_**Note:** The docker image consumes ~&hairsp;4GB of disk space._
 
 We recommend running LoopInvGen within a docker container,
-as opposed to installing it within your host OS.
-Docker containers have negligible performance overhead.
+since they have negligible performance overhead.
 (See [this report](http://domino.research.ibm.com/library/cyberdig.nsf/papers/0929052195DD819C85257D2300681E7B/$File/rc25482.pdf))
 
 1. [Get `docker` for your OS](https://docs.docker.com/install).
 2. Pull our docker image<sup>[#](#note_1)</sup>: `docker pull padhi/loopinvgen`.
-3. Run a container over the image: `docker run -it padhi/loopinvgen`. This would give you a `bash` shell within LoopInvGen directory.
+3. Run a container over the image: `docker run -it padhi/loopinvgen`.<br>
+   This would give you a `bash` shell within LoopInvGen directory.
 
 <a name="note_1"><sup>#</sup></a> Alternatively, you could also build the Docker image locally:
 
 ```bash
 docker build -t padhi/loopinvgen github.com/SaswatPadhi/LoopInvGen
 ```
+
+Docker containers are isolated from the host system.
+Therefore, to run LoopInvGen on SyGuS files residing on the host system,
+you must first [bind mount] them while running the container:
+
+```bash
+docker run -v /host/dir:/home/opam/LoopInvGen/shared -it padhi/loopinvgen
+```
+
+The `/host/dir` on the host system would then be accessible within the container at `~/LoopInvGen/shared` (with read+write permissions).
 
 <details>
 
@@ -92,18 +103,22 @@ for building LoopInvGen and its dependencies.
 Most of these packages are already installed on standard installations of most *nix distributions,
 except, may be, these: `aspcud libgmp-dev libomp-dev m4`.
 
-#### 1. Install `ocaml` >= 4.04.2.
-We recommend using an OCaml compiler with [`flambda`][flambda] optimizations enabled.
+#### 1. Install `opam` package manager for OCaml.
+
+See <https://opam.ocaml.org/doc/Install.html>.
+
+#### 2. Install `ocaml` >= 4.05.0.
+We recommend using an OCaml compiler with [`flambda`][flambda] optimizations enable
 For example, with [`opam`](https://opam.ocaml.org/), you could:
 - run `opam switch 4.07.1+flambda` for opam 1.x
 - run `opam switch create 4.07.1+flambda` for opam 2.x
 
-#### 2. `opam install` the dependencies.
+#### 3. `opam install` the dependencies.
 ```bash
-$ opam install alcotest.0.8.5 core.v0.11.3 core_extended.v0.11.0 dune.1.7.0
+$ opam install alcotest.0.8.5 core.v0.11.3 core_extended.v0.11.0 dune.1.7.3
 ```
 
-#### 3. Get the [Z3 project][z3].
+#### 4. Get the [Z3 project][z3].
 We have tested LoopInvGen with the latest stable version of Z3 (4.8.4).
 You could either:
 - `git checkout https://github.com/Z3Prover/z3.git` for the bleeding edge version, or
@@ -111,12 +126,13 @@ You could either:
 
 #### 4. `git clone` this project, and build everything.
 ```bash
-$ ./build_all.sh -z /PATH/TO/z3_dir
+$ ./scripts/build_all.sh -z /PATH/TO/z3_dir
 ```
-The `build_all.sh` script would build Z3, copy it to `./_dep/`, and then build LoopInvGen.
-Alternatively, you can copy a precompiled version of Z3 to `./_dep/`, and simply run `./build_all.sh`.
+The `build_all.sh` script would build Z3, copy it to `_dep/`, and then build LoopInvGen.
+Alternatively, you can copy a precompiled version of Z3 to a `_dep` directory at the root of the repository,
+and simply run `./scripts/build_all.sh`.
 
-For debug builds, use the `-D` or `--debug` switch when invoking `./build_all.sh`.
+For debug builds, use the `-D` or `--debug` switch when invoking `build_all.sh`.
 
 For future builds after any changes to the source code, you only need to run `dune build`.
 You can configure the build profile to either `debug` or `optimize` (default),
@@ -178,7 +194,7 @@ Try `./loopinvgen.sh -h` for other options that allow more control over the infe
 
 ## Batch Verification
 
-Execute `./test_all.sh -b benchmarks/LIA` to run LoopInvGen on all benchmarks in [benchmarks/LIA].  
+Execute `./scripts/test_all.sh -b benchmarks/LIA` to run LoopInvGen on all benchmarks in [benchmarks/LIA].
 The `test_all.sh` script invokes LoopInvGen for invariant inference,
 and then verifies that the generated invariant is sufficient to prove correctness of the SyGuS benchmark.
 
@@ -196,13 +212,12 @@ For each benchmark, the `test_all.sh` script generates one of the verdicts menti
                       <verdict> is one of the PASS verdicts above.
 ```
 
-#### Caching of Results
+#### Rerunning Failed Benchmarks
 
-Since `test_all.sh` caches results from previous runs, it skips benchmarks that are known to be passing.  
-This may be disabled by:
-- using the `-r` or `--rerun-passed` switch with `test_all.sh`, or
-- deleting the previous log directory (default: `_log`), or
-- specifying a new log directory (`-l _new_log`).
+The `test_all.sh` script creates a new log directory and tests all benchmarks each time it is run.
+However, one may want to rerun only the previously failed benchmarks, for example with a different timeout,
+from a previously failing run.
+This can be achieved by forcing `test_all.sh` to use a previous log directory, using `-l <old_log_dir>`.
 
 #### Benchmarking with Other Inference Tools
 
@@ -216,10 +231,10 @@ To use an invariant inference tool other than LoopInvGen, invoke it as:
 Just like `loopinvgen.sh`, the `test_all.sh` script allows users to limit the
 execution time for the invariant inference tools using the `-t` flag.
 ```bash
-$ ./test_all.sh -b benchmarks/LIA -t 10
+$ ./scripts/test_all.sh -b benchmarks/LIA -t 10
 ```
 
-Try `./test_all.sh -h` for more options.
+Try `./scripts/test_all.sh -h` for more options.
 
 </details>
 
@@ -239,12 +254,14 @@ Try `./test_all.sh -h` for more options.
 }
 ```
 
-[flambda]:        https://caml.inria.fr/pub/docs/manual-ocaml/flambda.html
-[z3]:             https://github.com/Z3Prover/z3
 [benchmarks/LIA]: benchmarks/LIA
+
+[flambda]:        https://caml.inria.fr/pub/docs/manual-ocaml/flambda.html
+[bind mount]:     https://docs.docker.com/storage/bind-mounts
 
 [SyGuSCOMP17]:    http://www.sygus.org/SyGuS-COMP2017.html
 [SyGuSCOMP18]:    http://www.sygus.org/SyGuS-COMP2018.html
 
-[travis]:         https://travis-ci.org/SaswatPadhi/LoopInvGen
 [docker-hub]:     https://hub.docker.com/r/padhi/loopinvgen
+[travis]:         https://travis-ci.org/SaswatPadhi/LoopInvGen
+[z3]:             https://github.com/Z3Prover/z3

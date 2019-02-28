@@ -5,20 +5,27 @@ FROM ubuntu:18.04
 LABEL maintainer="padhi@cs.ucla.edu"
 
 
-ENV OPAM_VERSION  2.0.0
+ENV OPAM_VERSION  2.0.3
 ENV OCAML_VERSION 4.07.1+flambda
 ENV Z3_VERSION    4.8.4
 
 ENV HOME /home/opam
 
 
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt upgrade -yq && \
-    apt install -yq aspcud binutils cmake curl g++ git libgmp-dev libgomp1 libomp5 \
-                    libomp-dev libx11-dev m4 make patch python2.7 sudo tzdata unzip
-RUN apt autoremove -y --purge && \
-    apt autoclean
+    apt install -yq aspcud \
+                    binutils \
+                    cmake curl \
+                    g++ git \
+                    libgmp-dev libgomp1 libomp5 libomp-dev libx11-dev \
+                    m4 make \
+                    patch python2.7 \
+                    sudo \
+                    time tzdata \
+                    unzip
+RUN apt autoremove -y --purge
 
 
 RUN adduser --disabled-password --home $HOME --shell /bin/bash --gecos '' opam && \
@@ -34,7 +41,7 @@ USER opam
 WORKDIR $HOME
 
 
-RUN opam install --yes alcotest.0.8.5 core.v0.11.3 core_extended.v0.11.0 dune.1.7.0
+RUN opam install --yes alcotest.0.8.5 core.v0.11.3 core_extended.v0.11.0 dune.1.7.3
 RUN opam clean --yes
 
 
@@ -46,7 +53,7 @@ RUN git clone https://github.com/SaswatPadhi/LoopInvGen.git LoopInvGen
 WORKDIR $HOME/LoopInvGen
 
 
-RUN opam config exec -- ./build_all.sh --with-logging --build-z3 $HOME/z3-$Z3_VERSION
+RUN opam config exec -- ./scripts/build_all.sh --with-logging --build-z3 $HOME/z3-$Z3_VERSION
 
 
 ENTRYPOINT [ "opam", "config", "exec", "--" ]

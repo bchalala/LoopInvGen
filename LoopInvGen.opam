@@ -1,7 +1,7 @@
 opam-version: "2.0"
 
 name: "LoopInvGen"
-version: "0.6b"
+version: "1.0"
 synopsis: "A loop invariant generator for program verification"
 
 maintainer: "Saswat Padhi <saswat.sourav@gmail.com>"
@@ -14,13 +14,16 @@ dev-repo: "git+https://github.com:SaswatPadhi/LoopInvGen.git"
 
 build: [
   [ "dune" "build" "@NoLog" ]
-  [ "dune" "build" "-p" name "-j" jobs "--profile" "optimize" ]
-	[ "dune" "build" "test/Runner.exe" ]
+  [ "dune" "build" "-p" name
+                   "-j" jobs
+                   "--profile" "optimize" ]
+	[ "dune" "build" "test/Runner.exe"
+    {with-test} ]
 ]
 
 depends: [
-  "ocaml"         {>= "4.04.2"}
-  "dune"          {>= "1.1.1" & build}
+  "ocaml"         {>= "4.05"}
+  "dune"          {>= "1.6" & build}
   "alcotest"      {>= "0.7" & with-test}
   "core"          {>= "0.11"}
   "core_extended" {>= "0.11"}
