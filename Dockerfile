@@ -24,9 +24,11 @@ RUN apt update && \
                     patch python2.7 \
                     sudo \
                     time tzdata \
-                    unzip
-RUN apt autoremove -y --purge
+                    unzip 
 
+RUN sudo apt install -y vim
+
+RUN apt autoremove -y --purge
 
 RUN adduser --disabled-password --home $HOME --shell /bin/bash --gecos '' opam && \
     echo 'opam ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
