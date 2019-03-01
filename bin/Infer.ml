@@ -11,7 +11,7 @@ let output_stats stats = function
 
 let main expressiveness logfile statefile statsfile zpath
          max_conflicts max_strengthening_attempts max_restarts max_steps_on_restart
-         filename () =
+         min_separating_examples num_counter_examples filename () =
   Log.enable ~msg:"INFER" logfile ;
   let state_chan = Utils.get_in_channel statefile in
   let states = List.(permute
@@ -33,12 +33,14 @@ let main expressiveness logfile statefile statsfile zpath
              LIG.default_config._VPIE._PIE._Synthesizer with
              logic = logic
            ; max_level = expressiveness
+           ; min_examples = min_separating_examples
            }
            ; max_conflict_group_size = (if max_conflicts > 0 then max_conflicts
                                       else (logic.conflict_group_size_multiplier
                                             * PIE.base_max_conflict_group_size)) ;
          }
        ; max_tries = max_strengthening_attempts
+       ; num_counter_examples = num_counter_examples
        }
      ; max_restarts
      ; max_steps_on_restart
@@ -71,8 +73,11 @@ let spec =
       +> flag "-max-restarts" (optional_with_default (LIG.default_config.max_restarts) int)
          ~doc:"INTEGER number of times the inference engine may restart"
       +> flag "-max-steps-on-restart" (optional_with_default (LIG.default_config.max_steps_on_restart) int)
-         ~doc:"INTEGER number of states to collect after each restart"
-
+         ~doc:"NUMBER number of states to collect after each restart"
+      +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) int)
+         ~doc:"NUMBER number of examples at a minimum necessary to separate conflict set"
+      +> flag "-num-gen-counter-examples" (optional_with_default (LIG.default_config._VPIE.num_counter_examples) int)
+         ~doc:"NUMBER number of counterexamples to be generated when precondition is not sufficient"
       +> anon ("filename" %: file)
     )
 
