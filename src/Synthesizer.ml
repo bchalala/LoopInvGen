@@ -11,7 +11,7 @@ type config = {
   cost_function : int -> int -> float ;
   logic : Logic.t ;
   max_level : int ;
-  min_examples : int ;
+  min_examples : float ;
 }
 
 let default_config : config = {
@@ -20,7 +20,7 @@ let default_config : config = {
   cost_function = (fun g_cost e_cost -> (Int.to_float e_cost) *. (Float.log (Int.to_float g_cost))) ;
   logic = Logic.of_string "LIA" ;
   max_level = 4 ;
-  min_examples = 3 ;
+  min_examples = .1 ;
 }
 
 type task = {
@@ -224,7 +224,9 @@ let solve_impl config task stats =
     let negCount = Array.fold_right negVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
     let allPos = ((Array.length posVals) = posCount) in
     let allNeg = ((Array.length negVals) = negCount) in 
-    if (allPos && allNeg) || (allPos && (negCount >= config.min_examples)) || (allNeg && (posCount >= config.min_examples)) then raise (Success candidate.expr)
+    let min_neg_examples = (int_of_float (floor ((float_of_int (Array.length posVals)) * config.min_examples))) in
+    let min_pos_examples = (int_of_float (floor ((float_of_int (Array.length negVals)) * config.min_examples))) in
+    if (allPos && allNeg) || (allPos && (negCount >= min_neg_examples)) || (allNeg && (posCount >= min_pos_examples)) then raise (Success candidate.expr)
 
   in
 
