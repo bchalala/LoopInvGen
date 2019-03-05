@@ -20,7 +20,7 @@ let default_config : config = {
   cost_function = (fun g_cost e_cost -> (Int.to_float e_cost) *. (Float.log (Int.to_float g_cost))) ;
   logic = Logic.of_string "LIA" ;
   max_level = 4 ;
-  min_examples = .1 ;
+  min_examples = 0.1 ;
 }
 
 type task = {
@@ -217,16 +217,16 @@ let solve_impl config task stats =
     (* if Array.equal ~equal:Value.equal task.outputs candidate.outputs
     then raise (Success candidate.expr) *)
     (* need to check here if either all pos and at least one neg, or all neg and at least one pos *)
-    let zipped = Array.zip_exn task.outputs candidate.outputs in 
+    let zipped = Array.zip_exn task.outputs candidate.outputs in
     let posVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
     let negVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
     let posCount = Array.fold_right posVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
     let negCount = Array.fold_right negVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
     let allPos = ((Array.length posVals) = posCount) in
-    let allNeg = ((Array.length negVals) = negCount) in 
-    let min_neg_examples = (int_of_float (floor ((float_of_int (Array.length posVals)) * config.min_examples))) in
-    let min_pos_examples = (int_of_float (floor ((float_of_int (Array.length negVals)) * config.min_examples))) in
-    if (allPos && allNeg) || (allPos && (negCount >= min_neg_examples)) || (allNeg && (posCount >= min_pos_examples)) then raise (Success candidate.expr)
+    let allNeg = ((Array.length negVals) = negCount) in
+    let min_neg_examples = (int_of_float (Float.round_down ((float_of_int (Array.length posVals)) *. config.min_examples))) in
+    let min_pos_examples = (int_of_float (Float.round_down ((float_of_int (Array.length negVals)) *. config.min_examples))) in
+    if (allPos && allNeg) || (allPos && (negCount > min_neg_examples)) || (allNeg && (posCount > min_pos_examples)) then raise (Success candidate.expr)
 
   in
 
