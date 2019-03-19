@@ -12,6 +12,7 @@ type config = {
   logic : Logic.t ;
   max_level : int ;
   min_examples : int ;
+  short_circuit : bool ;
 }
 
 let default_config : config = {
@@ -21,6 +22,7 @@ let default_config : config = {
   logic = Logic.of_string "LIA" ;
   max_level = 4 ;
   min_examples = 3 ;
+  short_circuit = true ;
 }
 
 type task = {
@@ -217,14 +219,16 @@ let solve_impl config task stats =
     (* if Array.equal ~equal:Value.equal task.outputs candidate.outputs
     then raise (Success candidate.expr) *)
     (* need to check here if either all pos and at least one neg, or all neg and at least one pos *)
-    let zipped = Array.zip_exn task.outputs candidate.outputs in 
-    let posVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
-    let negVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
-    let posCount = Array.fold_right posVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
-    let negCount = Array.fold_right negVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
-    let allPos = ((Array.length posVals) = posCount) in
-    let allNeg = ((Array.length negVals) = negCount) in 
-    if (allPos && allNeg) || (allPos && (negCount >= config.min_examples)) || (allNeg && (posCount >= config.min_examples)) then raise (Success candidate.expr)
+    if conf.short_circuit then 
+      (let zipped = Array.zip_exn task.outputs candidate.outputs in 
+       let posVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
+       let negVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
+       let posCount = Array.fold_right posVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
+       let negCount = Array.fold_right negVals ~f:(fun (x,y) v -> if Value.equal x y then v + 1 else v) ~init:0 in
+       let allPos = ((Array.length posVals) = posCount) in
+       let allNeg = ((Array.length negVals) = negCount) in 
+       if (allPos && allNeg) || (allPos && (negCount >= config.min_examples)) || (allNeg && (posCount >= config.min_examples)) then raise (Success candidate.expr))
+    else (if Array.equal ~equal:Value.equal task.outputs candidate.outputs then raise (Success candidate.expr))
 
   in
 
