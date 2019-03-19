@@ -74,8 +74,8 @@ let spec =
          ~doc:"INTEGER number of times the inference engine may restart"
       +> flag "-max-steps-on-restart" (optional_with_default (LIG.default_config.max_steps_on_restart) int)
          ~doc:"NUMBER number of states to collect after each restart"
-      +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) float)
-         ~doc:"NUMBER percent of examples at a minimum necessary to separate conflict set"
+      +> flag "-min-separating-examples" (optional_with_default (LIG.default_config._VPIE._PIE._Synthesizer.min_examples) int)
+         ~doc:"NUMBER num of examples at a minimum necessary to separate conflict set"
       +> flag "-num-gen-counter-examples" (optional_with_default (LIG.default_config._VPIE.num_counter_examples) int)
          ~doc:"NUMBER number of counterexamples to be generated when precondition is not sufficient"
       +> anon ("filename" %: file)

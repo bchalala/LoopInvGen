@@ -33,7 +33,7 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                   ?(consts = []) ~(post_desc : Job.desc) (job : Job.t)
                   : Job.desc * stats =
   let stats = { _PIE = [] ; vpi_time_ms = 0.0 ; vpi_ce = 0 } in
-  let rec helper tries_left job =
+  let rec helper conf tries_left job =
     if conf.max_tries > 0 && tries_left < 1
     then (Log.error (lazy ("VPIE Reached MAX attempts ("
                             ^ (Int.to_string conf.max_tries)
@@ -107,7 +107,7 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                                                 ~f:(fun v n -> "(= " ^ n ^ " " ^ (Value.to_string v) ^ ")")) ^ ")" in
                         let j = (Job.add_neg_test ~job test) in
                         (genCounterExamples ~curCounters:("(and " ^ curCounters ^ " (not " ^ counter_string ^ "))") j (n - 1)))
-              in helper (tries_left - 1) (genCounterExamples job conf.num_counter_examples)
+              in helper {conf with short_ciruit = false;}(tries_left - 1) (genCounterExamples job conf.num_counter_examples)
                end
     end
   in try helper conf.max_tries job
