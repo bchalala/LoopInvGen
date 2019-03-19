@@ -26,7 +26,7 @@ let default_config = {
   describe = PIE.cnf_opt_to_desc ;
   max_tries = 512 ;
   simplify = true ;
-  num_counter_examples = 3 ;
+  num_counter_examples = 1 ;
   short_circuit_tries = 7 ;
 }
 
