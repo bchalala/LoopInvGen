@@ -10,6 +10,7 @@ type 'a config = {
   max_tries : int ;
   simplify : bool ;
   num_counter_examples : int ;
+  short_circuit_tries : int
 }
 
 type stats = {
@@ -26,6 +27,7 @@ let default_config = {
   max_tries = 512 ;
   simplify = true ;
   num_counter_examples = 1 ;
+  short_circuit_tries = 3 ;
 }
 
 
@@ -106,9 +108,11 @@ let learnVPreCond ?(conf = default_config) ?(eval_term = "true") ~(z3 : ZProc.t)
                                                 test job.farg_names ~sep:" "
                                                 ~f:(fun v n -> "(= " ^ n ^ " " ^ (Value.to_string v) ^ ")")) ^ ")" in
                         let j = (Job.add_neg_test ~job test) in
-                        (genCounterExamples ~curCounters:("(and " ^ curCounters ^ " (not " ^ counter_string ^ "))") j (n - 1)))
-              in helper {conf with _PIE = { conf._PIE with _Synthesizer = {conf._PIE._Synthesizer with short_circuit = false } } } (tries_left - 1) (genCounterExamples job conf.num_counter_examples)
+                        (genCounterExamples ~curCounters:("(and " ^ curCounters ^ " (not " ^ counter_string ^ "))") j (n - 1))) in 
+                        let confp = (if conf.short_circuit_tries > 0 then {conf with short_circuit_tries = conf.short_circuit_tries - 1} 
+                              else { conf with _PIE = { conf._PIE with _Synthesizer = { conf._PIE._Synthesizer with short_circuit = false } } })
+                        in helper confp (tries_left - 1) (genCounterExamples job conf.num_counter_examples)
                end
     end
-  in try helper conf.max_tries job
+  in try helper conf conf.max_tries job
      with _ -> ("false" , stats)

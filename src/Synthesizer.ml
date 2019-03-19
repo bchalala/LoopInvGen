@@ -12,6 +12,7 @@ type config = {
   logic : Logic.t ;
   max_level : int ;
   min_examples : int ;
+
   short_circuit : bool ;
 }
 
@@ -219,7 +220,7 @@ let solve_impl config task stats =
     (* if Array.equal ~equal:Value.equal task.outputs candidate.outputs
     then raise (Success candidate.expr) *)
     (* need to check here if either all pos and at least one neg, or all neg and at least one pos *)
-    if conf.short_circuit then 
+    if config.short_circuit then 
       (let zipped = Array.zip_exn task.outputs candidate.outputs in 
        let posVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool true -> Some(x,y) | _ -> None) in
        let negVals = Array.filter_map zipped ~f:(fun (x,y) -> match x with | Value.Bool false -> Some(x,y) | _ -> None) in
